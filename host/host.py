@@ -1,17 +1,14 @@
-from libs.web import json_server as s
-from libs.engine import engine as eng
-from libs.engine import player
-
-
+from engine import *
+from player import *
+from json_server import *
 import threading
 
+PLAYER_COUNT = 4
 
-def main():
-    # game setup
-    config = eng.PokerConfig(500, 1000, 2000, 3)
-    players = [player.Player("Ricky", 10000), player.Player("Julian", 10000), player.Player("John", 10000)]
 
-    engine = eng.PokerEngine()
+def init_engine(players: list) -> PokerEngine:
+    config = PokerConfig(500, 1000, 2000, PLAYER_COUNT)
+    engine = PokerEngine()
     engine.set_config(config)
 
     for player in players:
@@ -19,39 +16,63 @@ def main():
 
     engine.reset()
     engine.game_step()
+    return engine
 
-    # server setup
+def init_server() -> JSONServer:
     HOST = '0.0.0.0'  # All available interfaces
     PORT = 5555  # Arbitrary port number
-    server = s.JSONServer(HOST, PORT)
+    server = JSONServer(HOST, PORT)
     server_thread = threading.Thread(target=server.start)
     server_thread.start()
+    return server
 
-    input("if all the players connected press any button")
+def main():
+    players = [Player("Marcin", 10000), Player("Szymon", 10000), Player("Julia", 10000), Player("Wiktor", 10000)]
+    engine = init_engine(players)
+    
+    server = init_server()
 
-
+    print("wait for the players to connect")
+    while len(server.clients) != PLAYER_COUNT:
+        time.sleep(0.1)
+    
+    player_connection = {}
+    for i in range(PLAYER_COUNT):
+        server.send_to([players[i].name, i], server.clients[i])     # sends to each player his name and client info
+        player_connection[players[i]] = server.clients[i]           
+ 
+    server.broadcast("\nGAME STARTS\n")
+    time.sleep(1)
     while(engine.running):
-        if(engine.game_phase != eng.GamePhase.WAITING_MOVE):
+        if(engine.game_phase != GamePhase.WAITING_MOVE):
             engine.game_step()
         else:
-            print(engine.get_game_state())
-            server.broadcast("Input move:")
-            # move_name = input()
+            info = engine.get_game_state() 
+            for key in info:
+                print(f"{key} : {info[key]}")
+            server.broadcast({"gamestate": info})
+            server.send_to("Input move:", player_connection[players[engine.get_game_state()["turn"]]])
             move_name = server.wait_data()
-            print(move_name)
 
             value = None
-            if(move_name == eng.MoveType.BET.value or move_name == eng.MoveType.RAISE.value):
-                server.broadcast("Input value: (min 4000)")
-                # value = int(input())
+            if(move_name == MoveType.BET.value or move_name == MoveType.RAISE.value):
+                server.send_to("Input value: (min 4000)", player_connection[players[engine.get_game_state()["turn"]]])
                 value = server.wait_data()
             if value:
                 value = int(value)
-            move = eng.Move(eng.MoveType(move_name), value)
+            move = Move(MoveType(move_name), value)
             print(vars(move))
+            server.broadcast({"playermove": [move_name, value]})
+
             engine.game_step(move)
 
-        print(engine.get_game_state())
+
+        info = engine.get_game_state() 
+        for key in info:
+            print(f"{key} : {info[key]}")
+        server.broadcast({"gamestate": info})
+        time.sleep(1)
+    
 
 if __name__ == "__main__":
     main()
