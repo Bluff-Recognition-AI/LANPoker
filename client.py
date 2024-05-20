@@ -1,4 +1,5 @@
 import threading
+import pygame
 from libs.gameui.gameui.game import Game
 
 tmp = {
@@ -87,8 +88,6 @@ class Client:
     def __init__(self, host_ip, host_port):
         self.host_ip = host_ip
         self.host_port = host_port
-        
-        
         self.game = Game(tmp)
 
     def run(self):
@@ -97,9 +96,6 @@ class Client:
 def test():
     client = Client("198.111.111.111", "4200")
     client.run()
-    while(True):
-        print("Input something:")
-        print(input())
 
 if __name__ == "__main__":
     test()
