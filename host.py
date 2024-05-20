@@ -1,6 +1,6 @@
-from engine import *
-from player import *
-from json_server import *
+from libs.engine.pokerengine.engine import *
+from libs.engine.pokerengine.player import *
+from libs.web.socketserverclient.json_server import *
 import threading
 
 PLAYER_COUNT = 4
