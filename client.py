@@ -88,10 +88,13 @@ class Client:
     def __init__(self, host_ip, host_port):
         self.host_ip = host_ip
         self.host_port = host_port
-        self.game = Game(tmp)
+        pygame.init()
+        self.screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
+        self.game = Game(self.screen)
+        self.game.load_gamestate(tmp)
 
     def run(self):
-        self.game.run()
+        self.game.run(self.screen)
 
 def test():
     client = Client("198.111.111.111", "4200")
