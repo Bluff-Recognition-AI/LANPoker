@@ -3,7 +3,7 @@
 	url = https://github.com/Bluff-Recognition-AI/Front-End-game.git
 [submodule "libs/engine"]
 	path = libs/engine
-	url = https://github.com/Bluff-Recognition-AI/PokerEngine.git
+	url = https://github.com/SSu4K/PokerEngine.git
 [submodule "libs/web"]
 	path = libs/web
 	url = https://github.com/Bluff-Recognition-AI/Socket_server_client.git
