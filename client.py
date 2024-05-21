@@ -1,6 +1,7 @@
 import threading
 import pygame
 from libs.gameui.gameui.game import Game
+from libs.web.socketserverclient.json_client import JSONClient
 
 tmp = {
     "config": {
@@ -83,6 +84,7 @@ tmp = {
 }
 
 SCREEN_SIZE = (800, 600)
+NAME = "Szymon"
 
 class Client:
     def __init__(self, host_ip, host_port):
@@ -90,14 +92,27 @@ class Client:
         self.host_port = host_port
         pygame.init()
         self.screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
+        
         self.game = Game(self.screen)
-        self.game.load_gamestate(tmp)
+        #self.game.load_gamestate(tmp)
+
+        self.web_client = JSONClient(host_ip, host_port)
+        self.web_client.connect()
+        self.web_client.send_data({"name": NAME})
+        print("connected")
 
     def run(self):
-        self.game.run(self.screen)
+
+        running = True
+        while(running):
+            data = self.web_client.get_data()
+            if data:
+                self.game.load_gamestate()
+            self.game.game_frame(self.screen)
 
 def test():
-    client = Client("198.111.111.111", "4200")
+
+    client = Client("10.1.4.118", 5555)
     client.run()
 
 if __name__ == "__main__":
