@@ -106,13 +106,15 @@ class Client:
         running = True
         while(running):
             data = self.web_client.get_data()
+            #data = tmp
             if data:
-                self.game.load_gamestate()
+                self.game.load_gamestate(data)
+                self.game.update_scale(self.screen.get_rect())
             self.game.game_frame(self.screen)
 
 def test():
 
-    client = Client("10.1.4.118", 5555)
+    client = Client("192.168.153.166", 5555)
     client.run()
 
 if __name__ == "__main__":
