@@ -3,7 +3,7 @@ from libs.engine.pokerengine.player import *
 from libs.web.socketserverclient.json_server import *
 import threading
 
-PLAYER_COUNT = 1
+PLAYER_COUNT = 2
 
 
 def init_engine(players: list) -> PokerEngine:
@@ -44,14 +44,19 @@ def main():
         if(engine.game_phase != GamePhase.WAITING_MOVE):
             engine.game_step()
         else:
-            move_get = server.wait_data()
+            #move_get = server.wait_data()
+            move_get = {
+                "name": MoveType.CALL,
+                "value": None
+            }
             move = Move(MoveType(move_get["name"]), move_get["value"])
             print(vars(move))
 
             engine.game_step(move)
+        
+        print(engine.get_game_state())
         server.broadcast(engine.get_game_state())
-        time.sleep(0.1)
-    
+        time.sleep(0.5)
 
 if __name__ == "__main__":
     main()

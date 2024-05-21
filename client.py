@@ -90,10 +90,7 @@ class Client:
     def __init__(self, host_ip, host_port):
         self.host_ip = host_ip
         self.host_port = host_port
-        pygame.init()
-        self.screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
-        
-        self.game = Game(self.screen)
+        self.game = Game()
         #self.game.load_gamestate(tmp)
 
         self.web_client = JSONClient(host_ip, host_port)
@@ -103,18 +100,17 @@ class Client:
 
     def run(self):
 
-        running = True
-        while(running):
+        while(self.game.running):
             data = self.web_client.get_data()
             #data = tmp
             if data:
                 self.game.load_gamestate(data)
-                self.game.update_scale(self.screen.get_rect())
-            self.game.game_frame(self.screen)
+
+            self.game.step()
 
 def test():
 
-    client = Client("192.168.153.166", 5555)
+    client = Client("10.128.130.160", 5555)
     client.run()
 
 if __name__ == "__main__":
