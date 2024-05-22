@@ -44,11 +44,12 @@ def main():
         if(engine.game_phase != GamePhase.WAITING_MOVE):
             engine.game_step()
         else:
-            #move_get = server.wait_data()
-            move_get = {
-                "name": MoveType.CALL,
-                "value": None
-            }
+            move_get = server.wait_data()
+            
+            # move_get = {
+            #     "name": MoveType.CALL,
+            #     "value": None
+            # }
             move = Move(MoveType(move_get["name"]), move_get["value"])
             print(vars(move))
 

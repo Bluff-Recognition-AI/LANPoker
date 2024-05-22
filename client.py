@@ -106,11 +106,16 @@ class Client:
             if data:
                 self.game.load_gamestate(data)
 
-            self.game.step()
+            action = self.game.step()
+            if action:
+                if action == "Call":
+                    self.web_client.send_data({"name": "CALL", "value": None})
+                elif action == "Fold":
+                    self.web_client.send_data({"name": "FOLD", "value": None})
 
 def test():
 
-    client = Client("10.128.130.160", 5555)
+    client = Client("10.129.240.3", 5555)
     client.run()
 
 if __name__ == "__main__":
