@@ -20,7 +20,7 @@ def init_engine(players: list) -> PokerEngine:
 
 def init_server() -> JSONServer:
     HOST = '0.0.0.0'  # All available interfaces
-    PORT = 5555  # Arbitrary port number
+    PORT = 5554  # Arbitrary port number
     server = JSONServer(HOST, PORT)
     server_thread = threading.Thread(target=server.start)
     server_thread.start()

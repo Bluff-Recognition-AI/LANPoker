@@ -1,3 +1,6 @@
+# ingonre logs and any .json files
+*.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 */__pycache__/
