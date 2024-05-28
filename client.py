@@ -39,8 +39,14 @@ class Client:
                     self.web_client.send_data({"name": "CALL", "value": None})
                 elif action == "Fold":
                     self.web_client.send_data({"name": "FOLD", "value": None})
-
+                elif action == "Raise":
+                    #print(self.game.gamestate)
+                    self.web_client.send_data({"name": "RAISE", "value": self.game.gamestate["config"]["big_blind"]})
+        self.game.close()
+        print("closed game")
         self.web_client.close()
+        print("closed web client")
+        sys.exit()
 
 def test():
     ip = sys.argv[1]
