@@ -1,87 +1,6 @@
-import threading
-import pygame
+import sys
 from libs.gameui.gameui.game import Game
 from libs.web.socketserverclient.json_client import JSONClient
-
-tmp = {
-    "config": {
-        "ante": 500,
-        "small_blind": 1000,
-        "big_blind": 2000,
-        "player_count": 6
-    },
-    "players": [
-        {
-            "name": "Szymon",
-            "money": 9500
-        },
-        {
-            "name": "Karol",
-            "money": 9500
-        },
-        {
-            "name": "Jezy",
-            "money": 9500
-        },
-        {
-            "name": "Julia",
-            "money": 1000
-        },
-        {
-            "name": "Kasia",
-            "money": 20200
-        },
-        {
-            "name": "Kasia",
-            "money": 20200
-        }
-    ],
-    "phase": "WAITING_MOVE",
-    "turn": 2,
-    "hands": [
-        [
-            "c9",
-            "s5"
-        ],
-        [
-            "c7",
-            "d9"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ]
-    ],
-    "board": ["cK", "sA"],
-    "stacks": [
-        8500,
-        7500,
-        9500,
-        1000,
-        20200,
-        20200
-    ],
-    "bets": [
-        1000,
-        2000,
-        0,
-        0,
-        0,
-        0
-    ]
-}
 
 SCREEN_SIZE = (800, 600)
 NAME = "Szymon"
@@ -91,18 +10,26 @@ class Client:
         self.host_ip = host_ip
         self.host_port = host_port
         self.game = Game()
-        #self.game.load_gamestate(tmp)
 
+        self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
         self.web_client.send_data({"name": NAME})
+        
+        while(True):
+            data = self.web_client.get_data()
+            if(data):
+                if("player_id" in data):
+                    self.player_id = data["player_id"]
+                    break
+        
+        self.game.focus_player = self.player_id
         print("connected")
 
     def run(self):
 
         while(self.game.running):
             data = self.web_client.get_data()
-            #data = tmp
             if data:
                 self.game.load_gamestate(data)
 
@@ -113,9 +40,11 @@ class Client:
                 elif action == "Fold":
                     self.web_client.send_data({"name": "FOLD", "value": None})
 
-def test():
+        self.web_client.close()
 
-    client = Client("10.129.240.3", 5555)
+def test():
+    ip = sys.argv[1]
+    client = Client(ip, 5555)
     client.run()
 
 if __name__ == "__main__":
