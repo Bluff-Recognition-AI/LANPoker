@@ -18,13 +18,15 @@ def init_engine(players: list) -> PokerEngine:
     engine.game_step()
     return engine
 
+
 def init_server() -> JSONServer:
-    HOST = '0.0.0.0'  # All available interfaces
-    PORT = 5555  # Arbitrary port number
+    HOST = "0.0.0.0"  # All available interfaces
+    PORT = 5554  # Arbitrary port number
     server = JSONServer(HOST, PORT)
     server_thread = threading.Thread(target=server.start)
     server_thread.start()
     return server
+
 
 def main():
     server = init_server()
@@ -34,29 +36,34 @@ def main():
         data = server.wait_data()
         if "name" in data:
             players.append(Player(data["name"], 10000))
+            player_id = len(server.clients) - 1
+            server.send_to({"player_id": player_id}, server.clients[player_id])
         time.sleep(0.1)
-    
+
     engine = init_engine(players)
-    server.broadcast(engine.get_game_state())          
- 
+    server.broadcast(engine.get_game_state())
+
     time.sleep(0.1)
-    while(engine.running):
-        if(engine.game_phase != GamePhase.WAITING_MOVE):
+    while engine.running:
+        print(engine.game_phase)
+        if engine.game_phase != GamePhase.WAITING_MOVE:
             engine.game_step()
         else:
-            #move_get = server.wait_data()
-            move_get = {
-                "name": MoveType.CALL,
-                "value": None
-            }
+            move_get = server.wait_data()
+
+            # move_get = {
+            #     "name": MoveType.CALL,
+            #     "value": None
+            # }
             move = Move(MoveType(move_get["name"]), move_get["value"])
             print(vars(move))
 
             engine.game_step(move)
-        
+
         print(engine.get_game_state())
         server.broadcast(engine.get_game_state())
         time.sleep(0.5)
+
 
 if __name__ == "__main__":
     main()
