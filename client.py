@@ -1,117 +1,80 @@
-import threading
-import pygame
+import sys
+import time
+import json
 from libs.gameui.gameui.game import Game
 from libs.web.socketserverclient.json_client import JSONClient
-
-tmp = {
-    "config": {
-        "ante": 500,
-        "small_blind": 1000,
-        "big_blind": 2000,
-        "player_count": 6
-    },
-    "players": [
-        {
-            "name": "Szymon",
-            "money": 9500
-        },
-        {
-            "name": "Karol",
-            "money": 9500
-        },
-        {
-            "name": "Jezy",
-            "money": 9500
-        },
-        {
-            "name": "Julia",
-            "money": 1000
-        },
-        {
-            "name": "Kasia",
-            "money": 20200
-        },
-        {
-            "name": "Kasia",
-            "money": 20200
-        }
-    ],
-    "phase": "WAITING_MOVE",
-    "turn": 2,
-    "hands": [
-        [
-            "c9",
-            "s5"
-        ],
-        [
-            "c7",
-            "d9"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ],
-        [
-            "c5",
-            "s6"
-        ]
-    ],
-    "board": ["cK", "sA"],
-    "stacks": [
-        8500,
-        7500,
-        9500,
-        1000,
-        20200,
-        20200
-    ],
-    "bets": [
-        1000,
-        2000,
-        0,
-        0,
-        0,
-        0
-    ]
-}
+from log import Log
 
 SCREEN_SIZE = (800, 600)
 NAME = "Szymon"
+
+BUTTON_MOVE_MAP = {"Call": "CALL", "Raise": "RAISE", "Fold": "FOLD"}
+LOG_FILE_PREFIX = "client_log_"
+LOG_FILE_EXTENSION = ".json"
+
 
 class Client:
     def __init__(self, host_ip, host_port):
         self.host_ip = host_ip
         self.host_port = host_port
         self.game = Game()
-        #self.game.load_gamestate(tmp)
 
+        self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
         self.web_client.send_data({"name": NAME})
+
+        self.log = Log(LOG_FILE_PREFIX + str(time.time()) + LOG_FILE_EXTENSION)
+
+        while True:
+            data = self.web_client.get_data()
+            if data:
+                if "player_id" in data:
+                    self.player_id = data["player_id"]
+                    break
+
+        self.game.focus_player = self.player_id
         print("connected")
+
+    def close(self):
+        self.log.save()
+        self.game.close()
+        print("closed game")
+        self.web_client.close()
+        print("closed web client")
+        # sys.exit()
+
+    def make_move(self, name, value=None):
+        self.web_client.send_data({"name": name, "value": value})
+        data = {"timestamp": time.time(), "move": name, "value": value, "bluff": "?"}
+        self.log.write(data)
+        self.log.save()
 
     def run(self):
 
-        while(self.game.running):
-            data = self.web_client.get_data()
-            #data = tmp
-            if data:
-                self.game.load_gamestate(data)
+        while self.game.running:
+            try:
+                data = self.web_client.get_data()
+                if data:
+                    self.game.load_gamestate(data)
 
-            self.game.step()
+                action = self.game.step()
+                if action:
+                    if action == "Raise":
+                        self.make_move(BUTTON_MOVE_MAP[action], self.game.bet)
+                    elif action in BUTTON_MOVE_MAP:
+                        self.make_move(BUTTON_MOVE_MAP[action])
+            except:
+                break
+
+        self.close()
+
 
 def test():
-
-    client = Client("10.128.130.160", 5555)
+    ip = sys.argv[1]
+    client = Client(ip, 5554)
     client.run()
+
 
 if __name__ == "__main__":
     test()
