@@ -1,7 +1,7 @@
 import sys
 import time
 import json
-from libs.gameui.gameui.game import Game, State
+from libs.gameui.gameui.game import Game
 from libs.web.socketserverclient.json_client import JSONClient
 from log import Log
 
@@ -48,36 +48,27 @@ class Client:
         print("closed web client")
         # sys.exit()
 
-    def make_move(self, name, value=None):
-        self.web_client.send_data({"name": name, "value": value})
-        data = {"timestamp": time.time(), "move": name, "value": value, "bluff": "?"}
+    def make_move(self, action):
+        data = action
+        data["timestamp"] = time.time()
+        self.web_client.send_data(data)
         self.log.write(data)
         self.log.save()
 
     def run(self):
-
         while(self.game.running):
-            try:
-                data = self.web_client.get_data()
-                if data:
-                    self.game.load_gamestate(data)
-
-                action = self.game.step()
-                if action:
-                    print(f"\nbluff {self.game.bluff}  :   action {self.game.action}\n")
-                    if action == "Raise":
-                        self.make_move(BUTTON_MOVE_MAP[action], self.game.bet)
-                    elif action in BUTTON_MOVE_MAP:
-                        self.make_move(BUTTON_MOVE_MAP[action])
-            except:
-                break
-
+            data = self.web_client.get_data()
+            if data:
+                print(data)
+                self.game.load_gamestate(data)
+            action = self.game.step()
+            if action:
+                self.make_move(action)
+        
         self.close()
 
 
 def test():
-    ip = sys.argv[1]
-    client = Client(ip, 5554)
     ip = sys.argv[1]
     client = Client(ip, 5554)
     client.run()

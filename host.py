@@ -38,8 +38,6 @@ def main():
             players.append(Player(data["name"], 10000))
             player_id = len(server.clients) - 1
             server.send_to({"player_id": player_id}, server.clients[player_id])
-            player_id = len(server.clients) - 1
-            server.send_to({"player_id": player_id}, server.clients[player_id])
         time.sleep(0.1)
 
     engine = init_engine(players)
