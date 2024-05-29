@@ -1,7 +1,7 @@
 import sys
 import time
 import json
-from libs.gameui.gameui.game import Game
+from libs.gameui.gameui.game import Game, State
 from libs.web.socketserverclient.json_client import JSONClient
 from log import Log
 
@@ -60,6 +60,7 @@ class Client:
 
                 action = self.game.step()
                 if action:
+                    print(f"\nbluff {self.game.bluff}  :   action {self.game.action}\n")
                     if action == "Raise":
                         self.make_move(BUTTON_MOVE_MAP[action], self.game.bet)
                     elif action in BUTTON_MOVE_MAP:
