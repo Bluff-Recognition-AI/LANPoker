@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+from new_record_video import *
 from libs.gameui.gameui.game import Game
 from libs.web.socketserverclient.json_client import JSONClient
 from log import Log
@@ -18,7 +19,10 @@ class Client:
         self.host_ip = host_ip
         self.host_port = host_port
         self.game = Game()
+        self.recorder = Recorder()
+        self.recorder.start(5)
 
+        self.player_id = None
         self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
@@ -42,30 +46,37 @@ class Client:
         print("closed game")
         self.web_client.close()
         print("closed web client")
+        #if hasattr(self.recorder, "camera_thread"):
+        #    if self.camera_thread.is_alive():
+         #       self.recorder.camera_thread.join()
+        self.recorder.close()
+        print("closed camera thread")
         # sys.exit()
 
-    def make_move(self, name, value=None):
-        self.web_client.send_data({"name": name, "value": value})
-        data = {"timestamp": time.time(), "move": name, "value": value, "bluff": "?"}
+    def make_move(self, action):
+        data = action
+        data["timestamp"] = time.time()
+        self.web_client.send_data(data)
         self.log.write(data)
         self.log.save()
 
     def run(self):
-
+        # self.recorder.start(5)
         while self.game.running:
-            try:
-                data = self.web_client.get_data()
-                if data:
-                    self.game.load_gamestate(data)
-
-                action = self.game.step()
-                if action:
-                    if action == "Raise":
-                        self.make_move(BUTTON_MOVE_MAP[action], self.game.bet)
-                    elif action in BUTTON_MOVE_MAP:
-                        self.make_move(BUTTON_MOVE_MAP[action])
-            except:
-                break
+            data = self.web_client.get_data()
+            if data:
+                print(data)
+                self.game.load_gamestate(data)
+            action = self.game.step()
+            if action:
+                self.make_move(action)
+                if action["bluff"]:
+                    self.recorder.record(action["timestamps"][0])
+                    if hasattr(self.recorder, "camera_thread"):
+                        self.recorder.camera_thread.join()
+                    self.recorder.save_the_file(action["bluff"], self.player_id)
+                    self.recorder.start_recording = False
+                    self.recorder.start(5)
 
         self.close()
 
