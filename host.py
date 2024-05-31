@@ -2,14 +2,14 @@ from libs.engine.pokerengine.engine import *
 from libs.engine.pokerengine.player import *
 from libs.web.socketserverclient.json_server import *
 import threading
+import traceback
 
 PLAYER_COUNT = 2
 
 
 def init_engine(players: list) -> PokerEngine:
     config = PokerConfig(500, 1000, 2000, PLAYER_COUNT)
-    engine = PokerEngine()
-    engine.set_config(config)
+    engine = PokerEngine(config)
 
     for player in players:
         engine.add_player(player)
@@ -29,6 +29,7 @@ def init_server() -> JSONServer:
 
 
 def main():
+    
     server = init_server()
     print("wait for the players to connect")
     players = []
@@ -45,16 +46,10 @@ def main():
 
     time.sleep(0.1)
     while engine.running:
-        print(engine.game_phase)
         if engine.game_phase != GamePhase.WAITING_MOVE:
             engine.game_step()
         else:
             move_get = server.wait_data()
-            
-            # move_get = {
-            #     "name": MoveType.CALL,
-            #     "value": None
-            # }
             move = Move(MoveType(move_get["name"]), move_get["value"])
             print(vars(move))
 
