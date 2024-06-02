@@ -1,6 +1,8 @@
 # ingonre logs and any .json files
 *.json
 videos/*
+*.mp4
+*.avi
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
