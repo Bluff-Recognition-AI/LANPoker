@@ -24,9 +24,22 @@ class Recorder:
         )  # 2*5s * buffer num
         self.frame_buffer = deque(maxlen=self.buffer_size)
 
-        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # CAP_DSHOW for Windows
+        # Try different backends and device indices
+        backends = [cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_V4L2, cv2.CAP_AVFOUNDATION, cv2.CAP_ANY]
+        device_indices = range(5)  # Try first 5 indices
 
-        if not self.cap.isOpened():
+        self.cap = None
+        for backend_index, backend in enumerate(backends):
+            for device_index in device_indices:
+                cap = cv2.VideoCapture(device_index, backend)
+                if cap.isOpened():
+                    self.cap = cap
+                    print(f"Camera opened with backend index {backend_index} ({backend}) and device index {device_index}")
+                    break
+            if self.cap is not None:
+                break
+
+        if self.cap is None or not self.cap.isOpened():
             print("Error: Camera not opened")
             return
 
