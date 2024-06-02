@@ -21,7 +21,6 @@ class Client:
         self.host_ip = host_ip
         self.host_port = host_port
         self.name = name
-        self.game = Game()
         if record:
             self.recorder = Recorder()
             self.recorder.start(5)
@@ -42,7 +41,8 @@ class Client:
                     self.player_id = data["player_id"]
                     break
 
-        self.game.focus_player = self.player_id
+
+        self.game = Game(self.name, self.player_id)
         print("connected")
 
     def close(self):
