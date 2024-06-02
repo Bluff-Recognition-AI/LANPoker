@@ -4,7 +4,7 @@ from libs.web.socketserverclient.json_server import *
 import threading
 import traceback
 
-PLAYER_COUNT = 2
+PLAYER_COUNT = 3
 
 
 def init_engine(players: list) -> PokerEngine:
