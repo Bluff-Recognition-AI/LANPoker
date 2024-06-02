@@ -4,11 +4,11 @@ from libs.web.socketserverclient.json_server import *
 import threading
 import traceback
 
-PLAYER_COUNT = 3
+PLAYER_COUNT = 6
 
 
 def init_engine(players: list) -> PokerEngine:
-    config = PokerConfig(500, 1000, 2000, PLAYER_COUNT)
+    config = PokerConfig(0, 500, 1000, PLAYER_COUNT)
     engine = PokerEngine(config)
 
     for player in players:

@@ -7,7 +7,6 @@ from libs.web.socketserverclient.json_client import JSONClient
 from log import Log
 
 SCREEN_SIZE = (800, 600)
-NAME = "Szymon"
 
 BUTTON_MOVE_MAP = {
     "Call": "CALL",
@@ -18,19 +17,18 @@ LOG_FILE_PREFIX = "client_log_"
 LOG_FILE_EXTENSION = ".json"
 
 class Client:
-    def __init__(self, host_ip, host_port):
+    def __init__(self, host_ip, host_port, name):
         self.host_ip = host_ip
         self.host_port = host_port
+        self.name = name
         self.game = Game()
         self.recorder = Recorder()
         self.recorder.start(5)
 
         self.player_id = None
-        self.player_id = None
-        self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
-        self.web_client.send_data({"name": NAME})
+        self.web_client.send_data({"name": self.name})
 
         self.log = Log(LOG_FILE_PREFIX + str(time.time()) + LOG_FILE_EXTENSION)
 
@@ -50,17 +48,9 @@ class Client:
         print("closed game")
         self.web_client.close()
         print("closed web client")
-        #if hasattr(self.recorder, "camera_thread"):
-        #    if self.camera_thread.is_alive():
-         #       self.recorder.camera_thread.join()
         self.recorder.close()
         print("closed camera thread")
-        # sys.exit()
 
-    def make_move(self, action):
-        data = action
-        data["timestamp"] = time.time()
-        self.web_client.send_data(data)
     def make_move(self, action):
         data = action
         data["timestamp"] = time.time()
@@ -69,11 +59,9 @@ class Client:
         self.log.save()
 
     def run(self):
-        # self.recorder.start(5)
         while self.game.running:
             data = self.web_client.get_data()
             if data:
-                print(data)
                 self.game.load_gamestate(data)
             action = self.game.step()
             if action:
@@ -82,18 +70,18 @@ class Client:
                     self.recorder.record(action["timestamps"][0])
                     if hasattr(self.recorder, "camera_thread"):
                         self.recorder.camera_thread.join()
-                    self.recorder.save_the_file(action["bluff"], self.player_id)
+                    self.recorder.save_the_file(action["bluff"], self.name)
                     self.recorder.start_recording = False
                     self.recorder.start(5)
 
         self.close()
 
 
-def test():
-    ip = sys.argv[1]
-    client = Client(ip, 5554)
+def main():
+    name = sys.argv[1]
+    ip = sys.argv[2]
+    client = Client(ip, 5554, name)
     client.run()
 
-
 if __name__ == "__main__":
-    test()
+    main()
