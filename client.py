@@ -8,10 +8,13 @@ from log import Log
 SCREEN_SIZE = (800, 600)
 NAME = "Szymon"
 
-BUTTON_MOVE_MAP = {"Call": "CALL", "Raise": "RAISE", "Fold": "FOLD"}
+BUTTON_MOVE_MAP = {
+    "Call": "CALL",
+    "Raise": "RAISE",
+    "Fold": "FOLD"
+}
 LOG_FILE_PREFIX = "client_log_"
 LOG_FILE_EXTENSION = ".json"
-
 
 class Client:
     def __init__(self, host_ip, host_port):
@@ -19,6 +22,7 @@ class Client:
         self.host_port = host_port
         self.game = Game()
 
+        self.player_id = None
         self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
@@ -44,29 +48,23 @@ class Client:
         print("closed web client")
         # sys.exit()
 
-    def make_move(self, name, value=None):
-        self.web_client.send_data({"name": name, "value": value})
-        data = {"timestamp": time.time(), "move": name, "value": value, "bluff": "?"}
+    def make_move(self, action):
+        data = action
+        data["timestamp"] = time.time()
+        self.web_client.send_data(data)
         self.log.write(data)
         self.log.save()
 
     def run(self):
-
-        while self.game.running:
-            try:
-                data = self.web_client.get_data()
-                if data:
-                    self.game.load_gamestate(data)
-
-                action = self.game.step()
-                if action:
-                    if action == "Raise":
-                        self.make_move(BUTTON_MOVE_MAP[action], self.game.bet)
-                    elif action in BUTTON_MOVE_MAP:
-                        self.make_move(BUTTON_MOVE_MAP[action])
-            except:
-                break
-
+        while(self.game.running):
+            data = self.web_client.get_data()
+            if data:
+                print(data)
+                self.game.load_gamestate(data)
+            action = self.game.step()
+            if action:
+                self.make_move(action)
+        
         self.close()
 
 
