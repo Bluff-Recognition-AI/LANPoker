@@ -70,7 +70,7 @@ class Client:
                     self.recorder.record(action["timestamps"][0])
                     if hasattr(self.recorder, "camera_thread"):
                         self.recorder.camera_thread.join()
-                    self.recorder.save_the_file(action["bluff"], self.name)
+                    self.recorder.save_the_file(action["name"], action["bluff"], self.name)
                     self.recorder.start_recording = False
                     self.recorder.start(5)
 

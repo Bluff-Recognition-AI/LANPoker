@@ -90,7 +90,7 @@ class Recorder:
                     self.time_diff += int(frames_needed / self.frame_rate)
                 break
 
-    def save_the_file(self, bluff_category, player_id):
+    def save_the_file(self, name, bluff_category, player_id):
         os.makedirs('videos', exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         extension = ".mp4"
@@ -103,9 +103,9 @@ class Recorder:
             )
             return
 
-        filename = f"videos/{timestamp}_{bluff_category}_{player_id}{extension}"
+        filename = f"videos/{timestamp}_{name}_{bluff_category}_{player_id}{extension}"
 
-        fourcc = cv2.VideoWriter_fourcc(*"MP4v")
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(filename, fourcc, self.frame_rate, self.resolution)
 
         i = 0
