@@ -15,6 +15,7 @@ class Recorder:
         self.frame_rate = frame_rate
         self.start_recording = False
         self.time_diff = 0  # sec
+        self.running = True
         #self.camera_thread = None
 
     def start(self, seconds):
@@ -54,6 +55,7 @@ class Recorder:
     
     def close(self):
         if hasattr(self, "camera_thread") and self.camera_thread.is_alive():
+            self.running = False
             self.camera_thread.join()
         if self.cap.isOpened():
             self.cap.release()
@@ -66,7 +68,7 @@ class Recorder:
         self.start_recording = True
 
     def __record_video(self):
-        while True:
+        while self.running:
             ret, frame = self.cap.read()
             if not ret:
                 print("Error: Failed to capture frame")
