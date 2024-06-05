@@ -79,9 +79,9 @@ class Client:
                 self.game.load_gamestate(data)
             action = self.game.step()
             if action:
-                self.make_move(action)
                 if action["bluff"]:
                     self.record(action)
+                self.make_move(action)
 
         self.close()
 
@@ -89,7 +89,7 @@ class Client:
 def main():
     name = sys.argv[1]
     ip = sys.argv[2]
-    client = Client(ip, 5554, name, record=False)
+    client = Client(ip, 5554, name)
     client.run()
 
 if __name__ == "__main__":
