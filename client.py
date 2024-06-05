@@ -13,26 +13,33 @@ BUTTON_MOVE_MAP = {
     "Raise": "RAISE",
     "Fold": "FOLD"
 }
+
+LOG_FILE_PATH = "client_logs/"
 LOG_FILE_PREFIX = "client_log_"
 LOG_FILE_EXTENSION = ".json"
 
+
 class Client:
-    def __init__(self, host_ip, host_port, name, record = True):
+    def __init__(self, host_ip, host_port, name, record=False, log=False):
         self.host_ip = host_ip
         self.host_port = host_port
         self.name = name
+
         if record:
             self.recorder = Recorder()
-            self.recorder.start(5)
         else:
             self.recorder = None
+
+        if log:
+            self.log = Log(LOG_FILE_PATH + LOG_FILE_PREFIX +
+                           str(int(time.time())) + LOG_FILE_EXTENSION)
+        else:
+            self.log = None
 
         self.player_id = None
         self.web_client = JSONClient(host_ip, host_port)
         self.web_client.connect()
         self.web_client.send_data({"name": self.name})
-
-        self.log = Log(LOG_FILE_PREFIX + str(time.time()) + LOG_FILE_EXTENSION)
 
         while True:
             data = self.web_client.get_data()
@@ -41,12 +48,14 @@ class Client:
                     self.player_id = data["player_id"]
                     break
 
-
         self.game = Game(self.name, self.player_id)
+        self.recorder.start(5)
         print("connected")
 
     def close(self):
-        self.log.save()
+        if self.log:
+            self.log.save()
+
         self.game.close()
         print("closed game")
         self.web_client.close()
@@ -59,8 +68,9 @@ class Client:
         data = action
         data["timestamp"] = time.time()
         self.web_client.send_data(data)
-        self.log.write(data)
-        self.log.save()
+        if self.log:
+            self.log.write(data)
+            self.log.save()
 
     def record(self, action):
         if not self.recorder:
@@ -78,6 +88,7 @@ class Client:
             if data:
                 self.game.load_gamestate(data)
             action = self.game.step()
+
             if action:
                 if action["bluff"]:
                     self.record(action)
@@ -87,10 +98,14 @@ class Client:
 
 
 def main():
-    name = sys.argv[1]
-    ip = sys.argv[2]
-    client = Client(ip, 5554, name)
+    with open("client_config.json") as file:
+        config = json.load(file)
+
+    print(config)
+    client = Client(config["host_ip"], config["host_port"],
+                    config["player_name"], record=config["record"], log=config["log"])
     client.run()
+
 
 if __name__ == "__main__":
     main()

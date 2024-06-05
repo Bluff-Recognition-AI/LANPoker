@@ -1,6 +1,7 @@
 # ingonre logs and any .json files
 *.json
 videos/*
+client_logs/*
 *.mp4
 *.avi
 
